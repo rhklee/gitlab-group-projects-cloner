@@ -5,7 +5,6 @@ import subprocess
 from os import path
 
 
-Group = namedtuple('Group', ['id'])
 Project = namedtuple('Project', ['name', 'web_url', 'ssh_url_to_repo'])
 Project_pull_cmd = namedtuple('Project_pull_cmd', ['cmd', 'project'])
 
@@ -63,13 +62,17 @@ def arguments():
     return ap.parse_args()
 
 
+def get_group_projects_uri(host, group_id, per_page=1):
+    return "https://{}/api/v4/groups/{}/projects?per_page={}&page=".format(host, group_id, per_page)
+
 def main():
     args = arguments()
-    group = Group(id=args.group_id)
+    group_id = args.group_id
+    destination_dir = args.destination_dir
     host = args.host
-    base_url_project_uri = "https://{}/api/v4/groups/{}/projects?page=".format(host, group.id)
+    group_project_uri = get_group_projects_uri(host, group_id)
 
-    run_pull_cmds(create_pull_cmds(get_projects(base_url_project_uri), args.destination_dir))
+    run_pull_cmds(create_pull_cmds(get_projects(group_project_uri), destination_dir))
 
 
 if __name__ == '__main__':
