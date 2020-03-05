@@ -1,5 +1,6 @@
 from collections import namedtuple
 import argparse
+import getpass
 import requests as r
 import subprocess
 from os import path, makedirs
@@ -22,6 +23,7 @@ def get_projects(base_url_project_uri):
         if resp.status_code == 200:
             jsonData = resp.json()
             if len(jsonData) == 0:
+                print("No more projects in group...")
                 return
 
             yield extract_project(jsonData[0])
@@ -81,8 +83,8 @@ def arguments():
     return ap.parse_args()
 
 
-def get_group_projects_uri(host, group_id, per_page=1):
-    return "https://{}/api/v4/groups/{}/projects?per_page={}&page=".format(host, group_id, per_page)
+def get_group_projects_uri(host, group_id, access_token, per_page=1):
+    return "https://{}/api/v4/groups/{}/projects?private_token={}&per_page={}&page=".format(host, group_id, access_token, per_page)
 
 
 def make_dir_if_nexists(destination_dir):
@@ -94,9 +96,12 @@ def main():
     args = arguments()
     group_id = args.group_id
     host = args.host
+    access_token = getpass.getpass(
+        prompt='provide your gitlab acces token to obtain all projects (i.e. internal and private projects): '
+    )   
 
     destination_dir = args.destination_dir
-    group_project_uri = get_group_projects_uri(host, group_id)
+    group_project_uri = get_group_projects_uri(host, group_id, access_token)
 
     make_dir_if_nexists(destination_dir)
 
